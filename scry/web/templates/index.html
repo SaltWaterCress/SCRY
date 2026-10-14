@@ -1,0 +1,365 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SCRY · Know your data</title>
+<style>
+:root{
+  --bg:#f6f7f9; --panel:#ffffff; --ink:#16181d; --muted:#626a78; --line:#e3e6eb; --soft:#eef1f5;
+  --accent:#2f5bea; --accent-ink:#ffffff;
+  --l1:#8a94a6; --l2:#d9a019; --l3:#e0782a; --l4:#d23f3f;
+  --ok:#2f9e6a;
+  --radius:10px; --shadow:0 1px 2px rgba(16,24,40,.06);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root{ --bg:#0f1115; --panel:#171a20; --ink:#e8eaee; --muted:#9aa3b2; --line:#272b33; --soft:#1e2229;
+    --accent:#6b8cff; --l1:#7d8696; --l2:#e2b13a; --l3:#ee8d45; --l4:#f06363; --shadow:none; }
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-size:14px;line-height:1.45}
+a{color:var(--accent)}
+.app{display:grid;grid-template-columns:210px 1fr;min-height:100vh}
+nav{border-right:1px solid var(--line);padding:20px 14px;position:sticky;top:0;height:100vh;background:var(--panel)}
+.brand{font-weight:700;font-size:16px;display:flex;gap:8px;align-items:center;margin:0 6px 22px}
+.brand svg{flex:none}
+nav button{display:flex;width:100%;text-align:left;border:0;background:none;color:var(--muted);padding:9px 10px;border-radius:8px;font:inherit;cursor:pointer;gap:8px}
+nav button.active,nav button:hover{background:var(--soft);color:var(--ink)}
+nav .foot{position:absolute;bottom:16px;left:20px;right:14px;color:var(--muted);font-size:12px}
+main{padding:28px 32px;max-width:1280px;width:100%}
+h1{font-size:22px;margin:0 0 4px}
+h2{font-size:15px;margin:0 0 12px}
+.sub{color:var(--muted);margin:0 0 22px}
+.grid{display:grid;gap:16px}
+.tiles{grid-template-columns:repeat(4,minmax(0,1fr))}
+.two{grid-template-columns:1.2fr 1fr}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow);min-width:0}
+.tile .v{font-size:28px;font-weight:700;letter-spacing:-.02em}
+.tile .k{color:var(--muted);font-size:12.5px}
+.tile .h{font-size:12px;color:var(--muted);margin-top:4px}
+.bars{display:flex;flex-direction:column;gap:8px}
+.bar{display:grid;grid-template-columns:170px 1fr 54px;gap:10px;align-items:center;cursor:pointer}
+.bar:hover .lbl{color:var(--accent)}
+.bar .track{background:var(--soft);border-radius:4px;height:10px;overflow:hidden}
+.bar .fill{height:100%;border-radius:4px;background:var(--accent)}
+.bar .num{text-align:right;font-variant-numeric:tabular-nums;color:var(--muted)}
+.lbl{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stack{display:flex;height:14px;border-radius:5px;overflow:hidden;background:var(--soft);margin:6px 0 12px}
+.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:12.5px;color:var(--muted)}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;vertical-align:0}
+table{width:100%;border-collapse:collapse}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-weight:600;color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.04em}
+tbody tr{cursor:pointer}
+tbody tr:hover{background:var(--soft)}
+td.num{text-align:right;font-variant-numeric:tabular-nums}
+.path{color:var(--muted);font-size:12px;word-break:break-all}
+.pill{display:inline-block;font-size:11.5px;padding:2px 8px;border-radius:999px;background:var(--soft);color:var(--muted);margin:2px 4px 2px 0;white-space:nowrap}
+.lab{font-weight:600;font-size:11.5px;padding:2px 8px;border-radius:999px;white-space:nowrap;color:#fff}
+.risk{display:inline-block;min-width:34px;text-align:center;font-weight:700;border-radius:6px;padding:2px 6px;color:#fff;font-variant-numeric:tabular-nums}
+.filters{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+input,select,textarea{font:inherit;color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px 10px}
+input[type=search]{min-width:260px;flex:1}
+.btn{font:inherit;border:0;border-radius:8px;padding:9px 16px;background:var(--accent);color:var(--accent-ink);cursor:pointer;font-weight:600}
+.btn.ghost{background:var(--soft);color:var(--ink)}
+.btn:disabled{opacity:.5;cursor:default}
+.progress{height:8px;background:var(--soft);border-radius:4px;overflow:hidden;margin:12px 0 6px}
+.progress div{height:100%;background:var(--accent);width:0;transition:width .3s}
+.drawer{position:fixed;top:0;right:0;width:min(560px,100%);height:100vh;background:var(--panel);border-left:1px solid var(--line);box-shadow:-8px 0 30px rgba(0,0,0,.12);transform:translateX(100%);transition:transform .2s;overflow:auto;padding:22px;z-index:10}
+.drawer.open{transform:none}
+.drawer .x{float:right;border:0;background:var(--soft);color:var(--ink);border-radius:8px;padding:6px 10px;cursor:pointer}
+.kv{display:grid;grid-template-columns:130px 1fr;gap:6px 12px;margin:14px 0}
+.kv div:nth-child(odd){color:var(--muted)}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12.5px;background:var(--soft);padding:1px 6px;border-radius:5px}
+.empty{color:var(--muted);text-align:center;padding:50px 0}
+.note{font-size:12.5px;color:var(--muted)}
+.hidden{display:none!important}
+.dupgroup{border-bottom:1px solid var(--line);padding:10px 0}
+.dupgroup:last-child{border:0}
+@media (max-width:900px){
+  .app{grid-template-columns:1fr} nav{position:static;height:auto;display:flex;flex-wrap:wrap;gap:4px}
+  nav button{width:auto} nav .foot,.brand{display:none}
+  .tiles{grid-template-columns:repeat(2,minmax(0,1fr))} .two{grid-template-columns:1fr}
+  main{padding:18px 16px} .bar{grid-template-columns:120px 1fr 44px}
+  .hide-sm{display:none}
+}
+</style>
+</head>
+<body>
+<div class="app">
+<nav>
+  <div class="brand">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l8 3v6c0 4.5-3.4 8.3-8 9-4.6-.7-8-4.5-8-9V6l8-3z"/><circle cx="12" cy="11" r="2.5"/></svg>
+    SCRY
+  </div>
+  <button data-view="overview" class="active">Overview</button>
+  <button data-view="files">Files</button>
+  <button data-view="types">Info types</button>
+  <button data-view="dups">Duplicates</button>
+  <button data-view="scan">Scan</button>
+  <div class="foot">v{{ version }} · runs locally<br>nothing leaves this computer</div>
+</nav>
+
+<main>
+  <!-- OVERVIEW -->
+  <section id="v-overview">
+    <h1>Data posture</h1>
+    <p class="sub" id="lastscan">No scan yet.</p>
+    <div id="nodata" class="card empty hidden">Nothing indexed yet. <a href="#" data-goto="scan">Run your first scan →</a></div>
+    <div id="ov" class="grid" style="gap:16px">
+      <div class="grid tiles">
+        <div class="card tile"><div class="k">Files indexed</div><div class="v" id="t-files">–</div><div class="h" id="t-bytes"></div></div>
+        <div class="card tile"><div class="k">Highly Confidential</div><div class="v" id="t-hc" style="color:var(--l4)">–</div><div class="h">IDs, tax, salary, credentials</div></div>
+        <div class="card tile"><div class="k">Sensitive files in Downloads/Desktop</div><div class="v" id="t-exp">–</div><div class="h" id="t-cloud"></div></div>
+        <div class="card tile"><div class="k">Duplicate copies</div><div class="v" id="t-dup">–</div><div class="h" id="t-dupb"></div></div>
+      </div>
+      <div class="card">
+        <h2>Sensitivity labels</h2>
+        <div class="stack" id="labelstack"></div>
+        <div class="legend" id="labellegend"></div>
+      </div>
+      <div class="grid two">
+        <div class="card"><h2>Sensitive info types <span class="note">(files containing)</span></h2><div class="bars" id="typebars"></div></div>
+        <div class="card"><h2>Document types</h2><div class="bars" id="docbars"></div></div>
+      </div>
+      <div class="card">
+        <h2>Riskiest files</h2>
+        <table><thead><tr><th>Risk</th><th>File</th><th class="hide-sm">Type</th><th class="hide-sm">Label</th></tr></thead><tbody id="toprisk"></tbody></table>
+      </div>
+      <div class="card">
+        <h2>Folders with the most sensitive files</h2>
+        <table><thead><tr><th>Folder</th><th class="num">Sensitive</th><th class="num">Files</th><th class="num">Max risk</th></tr></thead><tbody id="folders"></tbody></table>
+      </div>
+      <p class="note" id="ocrnote"></p>
+    </div>
+  </section>
+
+  <!-- FILES -->
+  <section id="v-files" class="hidden">
+    <h1>Files</h1>
+    <p class="sub">Click a file to see what was found. Values are masked; raw data is never stored.</p>
+    <div class="filters">
+      <input type="search" id="f-q" placeholder="Search path or document type">
+      <select id="f-label"><option value="">All labels</option><option>Highly Confidential</option><option>Confidential</option><option>General</option></select>
+      <select id="f-type"><option value="">All info types</option></select>
+      <select id="f-doc"><option value="">All document types</option></select>
+      <select id="f-sort"><option value="risk">Sort: risk</option><option value="size">Sort: size</option><option value="modified">Sort: modified</option><option value="name">Sort: name</option></select>
+    </div>
+    <div class="card" style="padding:0;overflow:auto">
+      <table><thead><tr><th>Risk</th><th>File</th><th class="hide-sm">Found</th><th class="hide-sm">Label</th><th class="num hide-sm">Size</th></tr></thead><tbody id="filerows"></tbody></table>
+    </div>
+    <p class="note" id="filecount"></p>
+  </section>
+
+  <!-- INFO TYPES -->
+  <section id="v-types" class="hidden">
+    <h1>Sensitive info types</h1>
+    <p class="sub">What the scanner looks for and how it avoids false positives.</p>
+    <div class="card" style="padding:0;overflow:auto">
+      <table><thead><tr><th>Info type</th><th class="hide-sm">Category</th><th class="hide-sm">How it's detected</th><th class="num">Files</th><th class="num">Unique</th></tr></thead><tbody id="typerows"></tbody></table>
+    </div>
+  </section>
+
+  <!-- DUPLICATES -->
+  <section id="v-dups" class="hidden">
+    <h1>Duplicates</h1>
+    <p class="sub">Every extra copy of a sensitive file is one more place it can leak from.</p>
+    <div class="card" id="duplist"></div>
+  </section>
+
+  <!-- SCAN -->
+  <section id="v-scan" class="hidden">
+    <h1>Scan</h1>
+    <p class="sub">Folders to scan, one per line. Unchanged files are skipped on rescans.</p>
+    <div class="card" style="max-width:720px">
+      <textarea id="s-paths" rows="4" style="width:100%">{{ defaults|join('\n') }}</textarea>
+      <div style="display:flex;gap:18px;align-items:center;margin:12px 0;flex-wrap:wrap">
+        <label><input type="checkbox" id="s-ocr" {% if ocr %}checked{% else %}disabled{% endif %}> OCR images &amp; scanned PDFs {% if not ocr %}<span class="note">(install Tesseract to enable)</span>{% endif %}</label>
+        <label><input type="checkbox" id="s-full"> Rescan everything</label>
+      </div>
+      <button class="btn" id="s-go">Start scan</button>
+      <div id="s-status" class="hidden">
+        <div class="progress"><div id="s-bar"></div></div>
+        <div class="note" id="s-text"></div>
+      </div>
+    </div>
+  </section>
+</main>
+</div>
+
+<aside class="drawer" id="drawer"></aside>
+
+<script>
+const TOKEN = {{ token|tojson }};
+const INFO = {{ info_types|tojson }};
+const HOME = {{ home|tojson }};
+const short = p => (p && HOME && (p===HOME || p.startsWith(HOME+"/"))) ? "~"+p.slice(HOME.length) : (p ?? "");
+const INFO_BY = Object.fromEntries(INFO.map(t => [t.key, t]));
+const LABEL_COLOR = {"Highly Confidential":"var(--l4)","Confidential":"var(--l3)","General":"var(--l1)"};
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const human = n => { const u=["B","KB","MB","GB","TB"]; let i=0; while(n>=1024&&i<4){n/=1024;i++} return (i?n.toFixed(1):n)+" "+u[i]; };
+const riskColor = r => r>=70?"var(--l4)":r>=45?"var(--l3)":r>=20?"var(--l2)":"var(--l1)";
+const riskBadge = r => `<span class="risk" style="background:${riskColor(r)}">${r}</span>`;
+const labelBadge = l => `<span class="lab" style="background:${LABEL_COLOR[l]||'var(--l1)'}">${esc(l)}</span>`;
+const typeName = k => INFO_BY[k]?.name || k;
+const api = (u, opt) => fetch(u, opt).then(r => r.ok ? r.json() : r.json().then(e => Promise.reject(e)));
+
+// ---------- navigation
+function show(view){
+  document.querySelectorAll("main > section").forEach(s => s.classList.toggle("hidden", s.id !== "v-"+view));
+  document.querySelectorAll("nav button").forEach(b => b.classList.toggle("active", b.dataset.view === view));
+  ({overview:loadOverview, files:loadFiles, types:loadTypes, dups:loadDups})[view]?.();
+}
+document.querySelectorAll("nav button").forEach(b => b.onclick = () => show(b.dataset.view));
+document.addEventListener("click", e => { const g = e.target.closest("[data-goto]"); if(g){ e.preventDefault(); show(g.dataset.goto);} });
+
+function barList(el, items, max, onClick){
+  el.innerHTML = items.map((it,i) => `<div class="bar" data-i="${i}"><div class="lbl" title="${esc(it.label)}">${esc(it.label)}</div>
+    <div class="track"><div class="fill" style="width:${max?Math.max(2,100*it.value/max):0}%;${it.color?`background:${it.color}`:""}"></div></div>
+    <div class="num">${it.value}</div></div>`).join("") || `<div class="note">Nothing found.</div>`;
+  el.querySelectorAll(".bar").forEach(b => b.onclick = () => onClick?.(items[b.dataset.i]));
+}
+
+// ---------- overview
+let SUMMARY = null;
+async function loadOverview(){
+  const s = SUMMARY = await api("/api/summary");
+  const empty = !s.files;
+  $("#nodata").classList.toggle("hidden", !empty); $("#ov").classList.toggle("hidden", empty);
+  if (s.last_scan) $("#lastscan").textContent = `Last scan ${new Date(s.last_scan.started*1000).toLocaleString()} · ${JSON.parse(s.last_scan.roots).map(short).join(", ")}`;
+  if (empty) return;
+  const byL = Object.fromEntries(s.by_label.map(r => [r.label, r.n]));
+  $("#t-files").textContent = s.files.toLocaleString(); $("#t-bytes").textContent = human(s.bytes);
+  $("#t-hc").textContent = (byL["Highly Confidential"]||0).toLocaleString();
+  $("#t-exp").textContent = (s.sensitive_exposure["in Downloads/Desktop"]||0).toLocaleString();
+  const cl = s.sensitive_exposure["cloud-synced"]||0, rd = s.sensitive_exposure["readable by other users"]||0;
+  $("#t-cloud").textContent = [cl?`${cl} cloud-synced`:"", rd?`${rd} readable by others`:""].filter(Boolean).join(" · ") || "of files labelled Confidential or higher";
+  $("#t-dup").textContent = s.duplicates.extra.toLocaleString(); $("#t-dupb").textContent = human(s.duplicates.wasted)+" wasted";
+
+  const order = ["Highly Confidential","Confidential","General"];
+  $("#labelstack").innerHTML = order.map(l => byL[l] ? `<div title="${l}: ${byL[l]}" style="width:${100*byL[l]/s.files}%;background:${LABEL_COLOR[l]}"></div>` : "").join("");
+  $("#labellegend").innerHTML = order.map(l => `<span><i class="dot" style="background:${LABEL_COLOR[l]}"></i>${l} · ${byL[l]||0}</span>`).join("");
+
+  const t = s.by_info_type.map(r => ({label:typeName(r.info_type), value:r.files, key:r.info_type,
+            color: INFO_BY[r.info_type]?.sensitivity>=4?"var(--l4)":INFO_BY[r.info_type]?.sensitivity==3?"var(--l3)":undefined}));
+  barList($("#typebars"), t, Math.max(...t.map(x=>x.value),1), it => filesBy({info_type: it.key}));
+  const d = s.by_doc_type.filter(r=>r.doc_type!=="Other").slice(0,12).map(r => ({label:r.doc_type, value:r.n}));
+  barList($("#docbars"), d, Math.max(...d.map(x=>x.value),1), it => filesBy({doc_type: it.label}));
+
+  const top = await api("/api/files?limit=10");
+  $("#toprisk").innerHTML = top.map(fileRow(false)).join("");
+  bindRows($("#toprisk"));
+  $("#folders").innerHTML = s.by_folder.filter(f=>f.sensitive).slice(0,12).map(f => `<tr data-folder="${esc(f.folder)}"><td class="path" style="color:var(--ink)">${esc(short(f.folder))}</td>
+     <td class="num">${f.sensitive}</td><td class="num">${f.n}</td><td class="num">${riskBadge(f.max_risk)}</td></tr>`).join("");
+  $("#folders").querySelectorAll("tr").forEach(r => r.onclick = () => filesBy({q: r.dataset.folder}));
+  $("#ocrnote").textContent = s.needs_ocr ? `${s.needs_ocr} image-only files (scans, photos) couldn't be read. Enable OCR on the Scan page to classify them.` : "";
+}
+
+// ---------- files
+function fileRow(full){ return f => {
+  const found = Object.entries(f.types).sort((a,b)=>b[1]-a[1]).slice(0,4).map(([k,n]) => `<span class="pill">${esc(typeName(k))} ${n}</span>`).join("");
+  return `<tr data-id="${f.id}"><td>${riskBadge(f.risk)}</td>
+    <td><div>${esc(f.name)}</div><div class="path">${esc(short(f.folder))}</div>${f.flags.length?`<div>${f.flags.map(x=>`<span class="pill">${esc(x)}</span>`).join("")}</div>`:""}</td>
+    ${full?`<td class="hide-sm">${found||'<span class="note">'+esc(f.doc_type)+'</span>'}</td>`:`<td class="hide-sm">${esc(f.doc_type)}</td>`}
+    <td class="hide-sm">${labelBadge(f.label)}</td>${full?`<td class="num hide-sm">${human(f.size)}</td>`:""}</tr>`; };
+}
+function bindRows(tb){ tb.querySelectorAll("tr[data-id]").forEach(r => r.onclick = () => openFile(r.dataset.id)); }
+function filesBy(f){
+  $("#f-q").value = f.q||""; $("#f-label").value = f.label||""; $("#f-type").value = f.info_type||""; $("#f-doc").value = f.doc_type||"";
+  show("files");
+}
+async function fillFilterOptions(){
+  if (!SUMMARY) SUMMARY = await api("/api/summary");
+  const ft = $("#f-type"), fd = $("#f-doc");
+  if (ft.options.length === 1) SUMMARY.by_info_type.forEach(r => ft.add(new Option(typeName(r.info_type), r.info_type)));
+  if (fd.options.length === 1) SUMMARY.by_doc_type.forEach(r => fd.add(new Option(r.doc_type, r.doc_type)));
+}
+let fileTimer;
+async function loadFiles(){
+  const keep = {t:$("#f-type").value, d:$("#f-doc").value};
+  await fillFilterOptions(); $("#f-type").value = keep.t; $("#f-doc").value = keep.d;
+  const p = new URLSearchParams({q:$("#f-q").value, label:$("#f-label").value, info_type:$("#f-type").value, doc_type:$("#f-doc").value, sort:$("#f-sort").value, limit:500});
+  const rows = await api("/api/files?"+p);
+  $("#filerows").innerHTML = rows.map(fileRow(true)).join("") || `<tr><td colspan="5" class="empty">No files match.</td></tr>`;
+  bindRows($("#filerows"));
+  $("#filecount").textContent = rows.length >= 500 ? "Showing the first 500 — narrow the filters to see more." : `${rows.length} files`;
+}
+["#f-label","#f-type","#f-doc","#f-sort"].forEach(s => $(s).onchange = loadFiles);
+$("#f-q").oninput = () => { clearTimeout(fileTimer); fileTimer = setTimeout(loadFiles, 250); };
+
+async function openFile(id){
+  const f = await api("/api/file/"+id);
+  const byType = {};
+  f.findings.forEach(x => (byType[x.info_type] ??= []).push(x));
+  $("#drawer").innerHTML = `<button class="x" onclick="closeDrawer()">Close</button>
+    <h2 style="margin-right:70px;word-break:break-all">${esc(f.name)}</h2>
+    <div>${riskBadge(f.risk)} ${labelBadge(f.label)} <span class="pill">${esc(f.doc_type)}</span></div>
+    <div class="kv">
+      <div>Location</div><div class="path" style="color:var(--ink)">${esc(short(f.folder))}</div>
+      <div>Size</div><div>${human(f.size)}</div>
+      <div>Modified</div><div>${new Date(f.mtime*1000).toLocaleString()}</div>
+      <div>Read via</div><div>${esc(f.method)}</div>
+      <div>Exposure</div><div>${f.flags.map(x=>`<span class="pill">${esc(x)}</span>`).join("") || "—"}</div>
+    </div>
+    <button class="btn ghost" onclick="reveal(${f.id})">Show in Finder</button>
+    <h2 style="margin-top:22px">What's inside</h2>
+    ${Object.keys(byType).length ? Object.entries(byType).map(([k,xs]) => `<div style="margin-bottom:12px"><b>${esc(typeName(k))}</b> <span class="note">· ${xs.length} unique</span><div>
+       ${xs.slice(0,12).map(x=>`<code title="confidence: ${x.confidence}">${esc(x.masked)}</code>`).join(" ")}${xs.length>12?` <span class="note">+${xs.length-12} more</span>`:""}</div></div>`).join("")
+      : `<p class="note">${f.method==="needs_ocr"?"This is an image or scanned PDF. Rescan with OCR to read it.":"No sensitive info types detected."}</p>`}
+    ${f.shared_values.length?`<h2 style="margin-top:22px">Same values appear elsewhere</h2>${f.shared_values.map(v=>`<div><code>${esc(v.masked)}</code> ${esc(typeName(v.info_type))} — in ${v.files} files</div>`).join("")}`:""}
+    ${f.duplicates.length?`<h2 style="margin-top:22px">Identical copies (${f.duplicates.length})</h2>${f.duplicates.map(p=>`<div class="path">${esc(short(p))}</div>`).join("")}`:""}`;
+  $("#drawer").classList.add("open");
+}
+function closeDrawer(){ $("#drawer").classList.remove("open"); }
+document.addEventListener("keydown", e => e.key==="Escape" && closeDrawer());
+function reveal(id){ fetch("/api/reveal/"+id, {method:"POST", headers:{"X-Token":TOKEN}}); }
+
+// ---------- info types
+async function loadTypes(){
+  const s = SUMMARY = await api("/api/summary");
+  const counts = Object.fromEntries(s.by_info_type.map(r => [r.info_type, r]));
+  $("#typerows").innerHTML = INFO.map(t => `<tr data-k="${t.key}"><td><b>${esc(t.name)}</b></td><td class="hide-sm">${esc(t.category)}</td>
+     <td class="hide-sm note">${esc(t.description)}</td><td class="num">${counts[t.key]?.files||0}</td><td class="num">${counts[t.key]?.uniq||0}</td></tr>`).join("");
+  $("#typerows").querySelectorAll("tr").forEach(r => r.onclick = () => filesBy({info_type:r.dataset.k}));
+}
+
+// ---------- duplicates
+async function loadDups(){
+  const g = await api("/api/duplicates");
+  $("#duplist").innerHTML = g.map(x => `<div class="dupgroup"><div><b>${x.c} copies</b> · ${human(x.size)} each ·
+      <span class="note">${human(x.size*(x.c-1))} reclaimable</span></div>${x.paths.map(p=>`<div class="path">${esc(short(p))}</div>`).join("")}</div>`).join("")
+    || `<div class="empty">No duplicates found.</div>`;
+}
+
+// ---------- scan
+let poll;
+$("#s-go").onclick = async () => {
+  const paths = $("#s-paths").value.split("\n").map(s=>s.trim()).filter(Boolean);
+  try {
+    await api("/api/scan", {method:"POST", headers:{"Content-Type":"application/json","X-Token":TOKEN},
+      body: JSON.stringify({paths, ocr:$("#s-ocr").checked, full:$("#s-full").checked})});
+    watch();
+  } catch(e){ alertBox(e.error || "Could not start scan"); }
+};
+function alertBox(msg){ $("#s-status").classList.remove("hidden"); $("#s-text").textContent = msg; }
+function watch(){
+  $("#s-go").disabled = true; $("#s-status").classList.remove("hidden");
+  clearInterval(poll);
+  poll = setInterval(async () => {
+    const p = await api("/api/progress");
+    const pct = p.total ? 100*p.done/p.total : 0;
+    $("#s-bar").style.width = pct+"%";
+    $("#s-text").textContent = p.phase==="done" ? `Done — ${p.total} files in ${Math.round(p.finished-p.started)}s, ${p.errors} unreadable.`
+      : p.phase==="error" ? "Scan failed: " + p.log.join(" ")
+      : `${p.phase} · ${p.done}/${p.total} · ${p.current.split("/").pop()}`;
+    if (!p.running){ clearInterval(poll); $("#s-go").disabled = false; SUMMARY = null;
+      $("#f-type").length = 1; $("#f-doc").length = 1; }
+  }, 600);
+}
+api("/api/progress").then(p => p.running && (show("scan"), watch()));
+loadOverview();
+</script>
+</body>
+</html>

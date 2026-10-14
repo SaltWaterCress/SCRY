@@ -1,0 +1,39 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "scry"
+version = "0.1.0"
+description = "SCRY: see the sensitive data hiding in your files. A private, local data-discovery and classification scanner for your laptop."
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.9"
+authors = [{ name = "Sk" }]
+keywords = ["scry", "dspm", "data security", "dlp", "pii", "privacy", "data classification", "purview"]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent",
+  "Topic :: Security",
+]
+dependencies = [
+  "flask>=2.3",
+  "pypdf>=4.0",
+]
+
+[project.optional-dependencies]
+ocr = ["pytesseract>=0.3.10", "Pillow>=10.0", "pillow-heif>=0.16"]
+dev = ["pytest>=7", "openpyxl>=3.1", "reportlab>=4.0"]
+
+[project.scripts]
+scry = "scry.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["scry*"]
+
+[tool.setuptools.package-data]
+scry = ["web/templates/*.html"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
