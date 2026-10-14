@@ -2,7 +2,7 @@
 
 **See the sensitive data hiding in your files.**
 
-SCRY scans the documents on your laptop and tells you what's in them: Aadhaar and PAN numbers, passports, bank account details, salary slips, tax returns, card numbers, passwords and API keys. It shows where each file lives, how exposed it is and how many copies you have, in a dashboard that runs entirely on your own computer.
+SCRY scans the documents on your laptop and tells you what's in them: GOVT ID'S, passports, bank account details, salary slips, tax returns, card numbers, passwords and API keys. It shows where each file lives, how exposed it is and how many copies you have, in a dashboard that runs entirely on your own computer.
 
 > *To scry*: to see what is hidden.
 
