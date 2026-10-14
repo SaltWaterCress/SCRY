@@ -1,0 +1,22 @@
+# never commit scan output: it contains your file paths
+*.db
+*.db-wal
+*.db-shm
+scry-report*.csv
+reports/
+demo-data/
+
+# python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+build/
+dist/
+.pytest_cache/
+
+# os / editors
+.DS_Store
+.idea/
+.vscode/
