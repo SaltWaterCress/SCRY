@@ -38,7 +38,7 @@ Companies solve this with **Data Security Posture Management (DSPM)** tools such
 
 | Category | Information types |
 |---|---|
-| **Government IDs** | Aadhaar · PAN · Indian passport · Indian driving licence · US Social Security number · Canadian SIN |
+| **Government IDs** | · Indian passport · Indian driving licence · US Social Security number · Canadian SIN |
 | **Financial** | Credit and debit card numbers · bank account numbers · IFSC · SWIFT/BIC · IBAN · GSTIN |
 | **Employment** | Salary and compensation details |
 | **Personal** | Email addresses · phone numbers (India, US, Canada) · date of birth |
